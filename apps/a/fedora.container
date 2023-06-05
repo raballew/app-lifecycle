@@ -1,0 +1,16 @@
+[Unit]
+Description=A minimal fedora container
+
+[Container]
+# fedora:39
+Image=quay.io/fedora/fedora@sha256:57fc3d1b3be881d27ae3a3275b1ca2515d6dd0c48925b1a05b156a5859ed9a02
+
+# In the container we just run sleep
+Exec=sleep 60
+
+[Service]
+# Restart service when sleep finishes
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target
