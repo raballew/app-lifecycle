@@ -3,10 +3,12 @@ Description=A minimal fedora container
 
 [Container]
 # fedora-minimal:38
-Image=quay.io/fedora/fedora-minimal@sha256:74786335d9b451a73c1f45ac55ecfff62ba1e5d66f01b45756987075930cf0b1
+Image=quay.io/fedora/fedora-minimal@sha256:82cbf7d47c03d991f1de18b4d981e43257d94a9d1fcec53236484d49129f106a
 
 # In the container we just run sleep
 Exec=sleep 60
+
+PodmanArgs=--storage-opt=overlay.additionalimagestore=/var/apps/82cbf7d47c03d991f1de18b4d981e43257d94a9d1fcec53236484d49129f106a
 
 [Service]
 # Restart service when sleep finishes
