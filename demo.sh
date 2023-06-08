@@ -1,7 +1,5 @@
 #!/bin/bash
-# todo: fix digests being different
 # todo: configure systemd to used /var/quadlets
-# todo: selinux policies
 
 . magic.sh
 TYPE_SPEED=80
@@ -40,8 +38,7 @@ create_tarball_from_dir() {
     for f in $1/* ; do
         image_id=$(get_image_id "$f")
         digest=$(get_digest_of_image_id "$image_id")
-        podman pull $image_id
-        podman save --format=oci-dir -o $2/$digest $image_id
+        skopeo copy --preserve-digests docker://$image_id dir://$2/$digest
         config_checksum=$(sha256sum -b "$f" | cut -d " " -f 1)
         mkdir $2/$digest"_"$config_checksum
         cp "$f" $2/$digest"_"$config_checksum
@@ -110,15 +107,16 @@ install_tarball() {
         mkdir -p $ROOT_DIR/apps/$dir/imagestore
         podman --root=$ROOT_DIR/apps/$dir/imagestore load -i $ROOT_DIR/apps/$dir
         sync
-        target_name=$(jq -r '.manifests[0].annotations."org.opencontainers.image.ref.name"' $ROOT_DIR/apps/$dir/index.json | sed 's/\@.*//')
-        podman --root=$ROOT_DIR/apps/$dir/imagestore tag localhost$ROOT_DIR/apps/$dir $target_name
         find $ROOT_DIR/apps/$dir -mindepth 1 ! -regex "^$ROOT_DIR/apps/$dir/imagestore\(/.*\)?" -delete
         mv $ROOT_DIR/apps/$dir/imagestore/* /path/
         mv -f $ROOT_DIR/apps/$dir/imagestore/{.,}* $ROOT_DIR/apps/$dir/
         rm -rf $ROOT_DIR/apps/$dir/imagestore/
+        semanage fcontext -a -e /var/lib/containers $ROOT_DIR/apps/$dir/
+        restorecon -R -v $ROOT_DIR/apps/$dir/
     done
 
-    ln -v -snf $transaction_dir $ROOT_DIR/quadlets
+    ln -snf $transaction_dir $ROOT_DIR/quadlets
+    ln -snf $ROOT_DIR/quadlets /usr/share/containers/systemd
 
     cleanup
     systemctl daemon-reload
@@ -128,9 +126,8 @@ rm -rf $ROOT_DIR/apps/
 rm -rf $ROOT_DIR/quadlets/
 rm -rf $ROOT_DIR/quadlet_*/
 rm -rf /tmp/tmp.*/
+rm -rf /usr/share/containers/systemd/
 mkdir -p $ROOT_DIR/apps/
-
-# configure systemd to load quadlet files
 
 pei "# 0 - create tarball A + signature"
 a_tmp=$(mktemp -d)
