@@ -6,7 +6,9 @@
 * Packages:
     * skopeo
     * podman
-* Root privileges 
+* Root privileges
+
+Then link one of the [Podman search directories](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) to `/var/quadlets/`.
 
 ## Run
 
