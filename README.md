@@ -6,6 +6,7 @@
 * Packages:
     * skopeo
     * podman
+* Root privileges 
 
 ## Run
 
