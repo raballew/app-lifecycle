@@ -1,10 +1,11 @@
 # App Lifecycle
 
-## Requirements
+## Prerequisites
 
-* Fedora 39
-* skopeo
-* podman
+* OS: Fedora 39
+* Packages:
+    * skopeo
+    * podman
 
 ## Run
 
