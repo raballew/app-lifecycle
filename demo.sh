@@ -82,12 +82,7 @@ install_tarball() {
     # link old configs
     link=$(readlink -f $ROOT_DIR/quadlets)
     if [[ ! "$link" == "$ROOT_DIR/quadlets" && ! -z "$link" ]] ; then
-        for f in $link/* ; do
-            [ -e "$f" ] || continue
-            src=$(find -L "$f" | tail -n1)
-            name=$(basename "$src")
-            ln -sf "$src" $transaction_dir/$name
-        done
+        cp -R $link/. $transaction_dir
     fi
 
     # copy new configs and replace overwritten old ones
@@ -105,12 +100,15 @@ install_tarball() {
 
     for dir in $image_dirs ; do
         mkdir -p $ROOT_DIR/apps/$dir/imagestore
+        # it is not possible to use the same directories for --root and -i
         podman --root=$ROOT_DIR/apps/$dir/imagestore load -i $ROOT_DIR/apps/$dir
+        # a forced sync is needed to write contents on disk for subsequent steps
         sync
+        # house keeping (move contents of image store to parent directory)
         find $ROOT_DIR/apps/$dir -mindepth 1 ! -regex "^$ROOT_DIR/apps/$dir/imagestore\(/.*\)?" -delete
-        mv $ROOT_DIR/apps/$dir/imagestore/* /path/
         mv -f $ROOT_DIR/apps/$dir/imagestore/{.,}* $ROOT_DIR/apps/$dir/
         rm -rf $ROOT_DIR/apps/$dir/imagestore/
+        # fix selinux
         semanage fcontext -a -e /var/lib/containers $ROOT_DIR/apps/$dir/
         restorecon -R -v $ROOT_DIR/apps/$dir/
     done
