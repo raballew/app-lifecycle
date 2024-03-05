@@ -108,6 +108,8 @@ install_tarball() {
         find $ROOT_DIR/apps/$dir -mindepth 1 ! -regex "^$ROOT_DIR/apps/$dir/imagestore\(/.*\)?" -delete
         mv -f $ROOT_DIR/apps/$dir/imagestore/{.,}* $ROOT_DIR/apps/$dir/
         rm -rf $ROOT_DIR/apps/$dir/imagestore/
+        # a forced sync is needed to write contents on disk for subsequent steps
+        sync
         # fix selinux
         semanage fcontext -a -e /var/lib/containers $ROOT_DIR/apps/$dir/
         restorecon -R -v $ROOT_DIR/apps/$dir/
@@ -116,7 +118,7 @@ install_tarball() {
     ln -snf $transaction_dir $ROOT_DIR/quadlets
     ln -snf $ROOT_DIR/quadlets /usr/share/containers/systemd
 
-    cleanup
+    # cleanup
     systemctl daemon-reload
 }
 
